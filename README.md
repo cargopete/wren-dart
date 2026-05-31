@@ -40,7 +40,7 @@ consume, the full retry → delay-queue → dead-letter path, and one-off `get`)
 
 ```yaml
 dependencies:
-  wren: ^1.0.0
+  wren: ^1.0.1
 ```
 
 ## A quick taste
@@ -94,6 +94,13 @@ class Order {
 Handlers may be sync or `async` and return a [`Confirmation`]: `ack` removes the
 message, `reject` discards it, and — with retry infrastructure — `retry`
 redelivers after a backoff while `deadLetter` routes to the dead-letter queue.
+
+A router decodes for you, but you can also decode a raw delivery by hand —
+handy after `channel.get` or inside a `handleWith`:
+
+```dart
+final order = message.decode(orderCodec); // throws DecodingFailed on bad payload
+```
 
 ### Retries & dead-lettering
 
