@@ -1,5 +1,12 @@
 # Changelog
 
+## 1.0.1 — Parity touch-up
+
+- `Message.decode(codec)` — decode a delivery's payload into a typed value,
+  wrapping codec failures as `DecodingFailed` (parity with the Gleam
+  `decode_message`).
+
+
 ## 1.0.0 — Tests, examples, and a stable API
 
 - Unit suite covering the pure logic: codecs, retry policy & metadata, config,

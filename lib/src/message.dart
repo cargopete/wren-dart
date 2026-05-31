@@ -1,6 +1,9 @@
 import 'dart:convert';
 import 'dart:typed_data';
 
+import 'codec.dart';
+import 'errors.dart';
+
 /// The header carrying a message's kind — the discriminator a router dispatches
 /// on. Matches the convention used by the Rust `bunnyhop` crate and Gleam wren.
 const String kindHeader = 'kind';
@@ -44,6 +47,16 @@ final class Message {
       return utf8.decode(payload);
     } on FormatException {
       return null;
+    }
+  }
+
+  /// Decode this message's payload into a typed value with [codec]. Throws
+  /// [DecodingFailed] if the payload can't be decoded.
+  T decode<T>(Codec<T> codec) {
+    try {
+      return codec.decode(payload);
+    } on CodecError catch (e) {
+      throw DecodingFailed(e.reason);
     }
   }
 }
