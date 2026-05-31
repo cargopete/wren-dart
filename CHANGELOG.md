@@ -1,5 +1,17 @@
 # Changelog
 
+## 1.0.0 — Tests, examples, and a stable API
+
+- Unit suite covering the pure logic: codecs, retry policy & metadata, config,
+  kind-routing, router dispatch, publish-options builder, and retry-topology
+  naming.
+- Integration suite (gated on `WREN_INTEGRATION=1`) against a real RabbitMQ
+  broker: publish/consume round trip, the retry → delay-queue → dead-letter
+  path, and one-off `get`.
+- Runnable examples (`producer`, `router`, `retry`, `recovery`) and a
+  `docker-compose.yml` for a local broker.
+- The public API is settled.
+
 ## 0.2.0 — Consumers
 
 - `WrenChannel.startConsumer` / `startRouter` (plus `*WithRetry` variants) with

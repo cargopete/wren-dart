@@ -16,25 +16,31 @@ loop instead.
 
 ## Status
 
-**Building toward `1.0` — milestone-by-milestone.**
+**Stable — `1.0`.** Feature-complete against the Gleam original (modulo the
+platform deviations noted below), exercised by a unit suite for the pure logic
+**and** an integration suite against a real RabbitMQ broker (round-trip publish/
+consume, the full retry → delay-queue → dead-letter path, and one-off `get`).
 
-- ✅ **M1 — Foundation:** connections & channels, topology (queues, exchanges,
-  bindings, deletes, `x-*` arguments), the full producer surface (options,
-  headers, priority, expiration, persistence, message properties, batch /
-  multi-target, kind-routing), publisher confirms, a `Codec` abstraction
-  (JSON / string / bytes), the retry policy & metadata types, config (incl.
-  `Config.fromEnv`, TLS, validation), and a one-off `get`.
-- ✅ **M2 — Consumers:** a consumer with concurrency control and per-delivery
-  settlement, the router-by-kind, retry / dead-letter infrastructure, the
-  self-healing recoverable consumer (explicit backoff reconnection), the
-  connection pool, and the `Client` front door.
-- ⏳ **M3 — Tests & examples:** a unit suite plus runnable example programs.
+- ✅ Typed connections & channels over `dart_amqp`
+- ✅ Topology — queues (incl. passive), exchanges, bindings, deletes with
+  guards, purge, and typed `x-*` arguments
+- ✅ Producer surface — options, headers, priority, expiration, persistence,
+  full AMQP message properties (`correlationId` / `replyTo` for RPC), batch /
+  multi-target publishing, and kind-based routing
+- ✅ Publisher confirms (`publishConfirmed`)
+- ✅ A `Codec` abstraction — JSON / string / bytes, plus `publishEncoded`
+- ✅ A consumer with prefetch-bounded concurrency and per-delivery settlement
+- ✅ Router-style consumer — dispatch by message `kind` to typed handlers
+- ✅ Retry & dead-letter infrastructure — TTL delay queues, a DLX, and a DLQ
+- ✅ A self-healing recoverable consumer — capped exponential-backoff reconnection
+- ✅ A round-robin connection pool and a `Client` front door
+- ✅ Config — `Config.fromEnv`, TLS, vhost / heartbeat / timeout, validation
 
 ## Install
 
 ```yaml
 dependencies:
-  wren: ^0.2.0
+  wren: ^1.0.0
 ```
 
 ## A quick taste
@@ -125,6 +131,28 @@ final consumer = await RecoverableConsumer.startRouter(
   choice — so a single `on WrenError catch` covers them all.
 - Connection recovery (M2) leans on an explicit backoff loop rather than
   hand-rolled reconnection scattered through call sites.
+
+## Examples
+
+Runnable programs live under [`example/`](./example):
+
+```sh
+dart run example/producer.dart   # options, confirms, batches
+dart run example/router.dart     # dispatch typed messages by kind
+dart run example/retry.dart      # fail once, then succeed via a delay queue
+dart run example/recovery.dart   # a self-healing consumer
+```
+
+## Development
+
+The integration suite talks to a real broker. Bring one up first:
+
+```sh
+docker compose up -d                     # start a local RabbitMQ (guest/guest)
+dart test                                # unit suite (no broker needed)
+WREN_INTEGRATION=1 dart test             # unit + integration suites
+docker compose down                      # stop the broker
+```
 
 ## Notes & deviations from the Gleam original
 
