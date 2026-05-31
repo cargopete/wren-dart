@@ -24,8 +24,9 @@ loop instead.
   multi-target, kind-routing), publisher confirms, a `Codec` abstraction
   (JSON / string / bytes), the retry policy & metadata types, config (incl.
   `Config.fromEnv`, TLS, validation), and a one-off `get`.
-- ⏳ **M2 — Consumers:** the supervised consumer, the router-by-kind, retry /
-  dead-letter infrastructure, the self-healing recoverable consumer, the
+- ✅ **M2 — Consumers:** a consumer with concurrency control and per-delivery
+  settlement, the router-by-kind, retry / dead-letter infrastructure, the
+  self-healing recoverable consumer (explicit backoff reconnection), the
   connection pool, and the `Client` front door.
 - ⏳ **M3 — Tests & examples:** a unit suite plus runnable example programs.
 
@@ -33,7 +34,7 @@ loop instead.
 
 ```yaml
 dependencies:
-  wren: ^0.1.0
+  wren: ^0.2.0
 ```
 
 ## A quick taste
@@ -62,6 +63,18 @@ Future<void> main() async {
     PublishOptions().route('orders').withKind('order.created'),
   );
 
+  // Consume, routing by kind to typed handlers.
+  final router = Router()
+      .handle<Order>('order.created', orderCodec, (order) {
+        print('got order ${order.id}');
+        return Confirmation.ack;
+      })
+      .fallback((_) => Confirmation.reject);
+
+  final consumer = await channel.startRouter('orders', router);
+
+  // … later …
+  await consumer.stop();
   await channel.close();
   await connection.close();
 }
@@ -70,6 +83,36 @@ class Order {
   Order(this.id);
   final String id;
 }
+```
+
+Handlers may be sync or `async` and return a [`Confirmation`]: `ack` removes the
+message, `reject` discards it, and — with retry infrastructure — `retry`
+redelivers after a backoff while `deadLetter` routes to the dead-letter queue.
+
+### Retries & dead-lettering
+
+Give the consumer retry infrastructure and wren builds the delay-queue +
+dead-letter topology for you:
+
+```dart
+final infra = RetryInfrastructure.forQueue('orders', RetryPolicy.defaults());
+
+// Declares the topology and starts consuming, routing by kind.
+final consumer = await channel.startRouterWithRetry(router, infra);
+```
+
+### Self-healing consumer
+
+`RecoverableConsumer` owns its own connection and reconnects with capped
+exponential backoff, re-subscribing on its own:
+
+```dart
+final consumer = await RecoverableConsumer.startRouter(
+  const Config(host: 'localhost'),
+  'orders',
+  router,
+  const RecoverableOptions(maxConcurrent: 8),
+);
 ```
 
 ## Design

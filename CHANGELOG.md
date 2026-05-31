@@ -1,5 +1,17 @@
 # Changelog
 
+## 0.2.0 — Consumers
+
+- `WrenChannel.startConsumer` / `startRouter` (plus `*WithRetry` variants) with
+  prefetch-bounded concurrency and per-delivery settlement.
+- `Router` — dispatch by message `kind` to typed handlers, with a fallback.
+- `RetryInfrastructure` — delay-queue + dead-letter topology, and retry /
+  dead-letter rerouting of settled messages.
+- `RecoverableConsumer` — a self-healing consumer that reconnects with capped
+  exponential backoff and re-subscribes.
+- `Pool` — round-robin connection pool, and `Client` — a connection+channel
+  front door.
+
 ## 0.1.0 — Foundation
 
 The producer-side foundation of the Dart port, wrapping `dart_amqp`.
