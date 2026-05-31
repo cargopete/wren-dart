@@ -1,0 +1,14 @@
+name: wren
+description: An ergonomic RabbitMQ / AMQP messaging library for Dart — typed messages, a router-style consumer, retries and dead-lettering, and self-healing reconnection.
+version: 0.1.0
+repository: https://github.com/cargopete/wren-dart
+
+environment:
+  sdk: ^3.5.0
+
+dependencies:
+  dart_amqp: ^0.2.5
+
+dev_dependencies:
+  lints: ^4.0.0
+  test: ^1.25.0
