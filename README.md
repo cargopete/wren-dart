@@ -136,7 +136,7 @@ final consumer = await RecoverableConsumer.startRouter(
 - Failures surface as exceptions (`WrenError` subtypes: `ConnectionFailed`,
   `ChannelFailed`, `EncodingFailed`, `DecodingFailed`) — the idiomatic Dart
   choice — so a single `on WrenError catch` covers them all.
-- Connection recovery (M2) leans on an explicit backoff loop rather than
+- Connection recovery leans on an explicit backoff loop rather than
   hand-rolled reconnection scattered through call sites.
 
 ## Examples
